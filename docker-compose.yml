@@ -1,0 +1,53 @@
+version: '2'
+services:
+  web:
+    build: ./web
+    container_name: web
+    ports:
+      - 8084:8084
+    depends_on:
+      - "rest"
+      - "config"
+      - "discovery"
+    env_file: ./.env
+    environment:
+      SPRING_APPLICATION_JSON: '{
+          "okta.oauth2.client-secret"  : "$OKTA_OAUTH2_CLIENT_SECRET"
+        }'
+  rest:
+    build: .
+    container_name: rest
+    ports:
+      - 8083:8083
+    depends_on:
+      - "mysqldb"
+      - "config"
+      - "discovery"
+    env_file: ./.env
+    environment:
+      SPRING_APPLICATION_JSON: '{
+          "okta.oauth2.client-secret"  : "$OKTA_OAUTH2_CLIENT_SECRET"
+        }'
+  discovery:
+    build: ./discovery
+    container_name: discovery
+    ports:
+      - 8081:8081
+  config:
+    build: ./config
+    container_name: config
+    ports:
+      - 8082:8082
+  mysqldb:
+    image: mysql:5.7
+    restart: unless-stopped
+    environment:
+      - MYSQLDB_USER=root
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=project_management
+    ports:
+      - 3306:3306
+    volumes:
+      - db:/var/lib/mysql
+volumes:
+  db:
